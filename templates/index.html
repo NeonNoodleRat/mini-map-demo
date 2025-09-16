@@ -30,14 +30,9 @@
     // Center the map on Texas
     const map = new mapboxgl.Map( {
         container: 'map',
+        style: 'mapbox://styles/mapbox/standard',
         center: [-99.9018, 31.9686], // Center of Texas
-        zoom: 6,
-        config: {
-            basemap: {
-                lightPreset: "night",
-                theme: 'monochrome'
-            }
-        },
+        zoom: 6
     })
 
     let propertyData = [];
@@ -148,9 +143,9 @@
             'source-layer': 'boundaries_admin_2',
             'filter': ['==', 'iso_3166_1', 'US'],
             'paint': {
-                'line-color': '#ffffff',
+                'line-color': '#627BC1',
                 'line-width': 1,
-                'line-opacity': 0.6
+                'line-opacity': 0.8
             }
         });
 
@@ -160,9 +155,9 @@
             'type': 'circle',
             'source': 'properties',
             'paint': {
-                'circle-radius': 6,
-                'circle-color': '#2563eb',
-                'circle-stroke-color': '#1e40af',
+                'circle-radius': 4,
+                'circle-color': '#4264fb',
+                'circle-stroke-color': '#ffffff',
                 'circle-stroke-width': 2
             }
         });
@@ -190,13 +185,24 @@
                 .addTo(map);
         });
 
-        // Change cursor on hover
-        map.on('mouseenter', 'property-points', () => {
+        // Change cursor on hover and increase radius
+        map.on('mouseenter', 'property-points', (e) => {
             map.getCanvas().style.cursor = 'pointer';
+
+            // Highlight the hovered feature
+            map.setPaintProperty('property-points', 'circle-radius', [
+                'case',
+                ['==', ['get', 'owner_name'], e.features[0].properties.owner_name],
+                6,
+                4
+            ]);
         });
 
         map.on('mouseleave', 'property-points', () => {
             map.getCanvas().style.cursor = '';
+
+            // Reset radius
+            map.setPaintProperty('property-points', 'circle-radius', 4);
         });
     }
 
