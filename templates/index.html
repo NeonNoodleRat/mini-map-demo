@@ -41,7 +41,6 @@
     })
 
     let propertyData = [];
-    let markers = [];
 
     // Fetch property data from API
     async function loadPropertyData() {
@@ -51,7 +50,7 @@
             console.log(`Loaded ${propertyData.length} properties`);
             
             buildCountyButtons();
-            addMarkersToMap();
+            addDataToMap();
         } catch (error) {
             console.error('Error loading property data:', error);
         }
@@ -99,40 +98,85 @@
         });
     }
 
-    function addMarkersToMap() {
-        // Clear existing markers
-        markers.forEach(marker => marker.remove());
-        markers = [];
+    function convertToGeoJSON(data) {
+        return {
+            "type": "FeatureCollection",
+            "features": data
+                .filter(property => property.longitude && property.latitude)
+                .map(property => ({
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [property.longitude, property.latitude]
+                    },
+                    "properties": {
+                        "owner_name": property.owner_name || 'Unknown Owner',
+                        "owner_address": property.owner_address || '',
+                        "city": property.city || '',
+                        "state": property.state || '',
+                        "zip": property.zip || '',
+                        "county": property.county || 'Unknown',
+                        "operator": property.operator || '',
+                        "well_name": property.well_name || '',
+                        "property_description": property.property_description || '',
+                        "formatted_address": formatAddress(property)
+                    }
+                }))
+        };
+    }
 
-        propertyData.forEach(property => {
-            if (!property.longitude || !property.latitude) return;
+    function addDataToMap() {
+        const geojsonData = convertToGeoJSON(propertyData);
+        
+        // Add source
+        map.addSource('properties', {
+            'type': 'geojson',
+            'data': geojsonData
+        });
 
-            const el = document.createElement('div');
-            el.className = 'marker property-marker';
+        // Add circle layer for properties
+        map.addLayer({
+            'id': 'property-points',
+            'type': 'circle',
+            'source': 'properties',
+            'paint': {
+                'circle-radius': 6,
+                'circle-color': '#2563eb',
+                'circle-stroke-color': '#1e40af',
+                'circle-stroke-width': 2
+            }
+        });
 
-            // Create popup content
+        // Add click event for popups
+        map.on('click', 'property-points', (e) => {
+            const properties = e.features[0].properties;
+            
             const popupContent = `
                 <div class="property-popup">
-                    <h3>${property.owner_name || 'Unknown Owner'}</h3>
+                    <h3>${properties.owner_name}</h3>
                     <div class="property-details">
-                        <p><strong>Address:</strong> ${formatAddress(property)}</p>
-                        <p><strong>County:</strong> ${property.county || 'Unknown'}</p>
-                        ${property.operator ? `<p><strong>Operator:</strong> ${property.operator}</p>` : ''}
-                        ${property.well_name ? `<p><strong>Well:</strong> ${property.well_name}</p>` : ''}
-                        ${property.property_description ? `<p class="property-desc"><strong>Description:</strong> ${property.property_description.substring(0, 100)}${property.property_description.length > 100 ? '...' : ''}</p>` : ''}
+                        <p><strong>Address:</strong> ${properties.formatted_address}</p>
+                        <p><strong>County:</strong> ${properties.county}</p>
+                        ${properties.operator ? `<p><strong>Operator:</strong> ${properties.operator}</p>` : ''}
+                        ${properties.well_name ? `<p><strong>Well:</strong> ${properties.well_name}</p>` : ''}
+                        ${properties.property_description ? `<p class="property-desc"><strong>Description:</strong> ${properties.property_description.substring(0, 100)}${properties.property_description.length > 100 ? '...' : ''}</p>` : ''}
                     </div>
                 </div>
             `;
 
-            const popup = new mapboxgl.Popup({ offset: 25 })
-                .setHTML(popupContent);
-
-            const marker = new mapboxgl.Marker(el)
-                .setLngLat([property.longitude, property.latitude])
-                .setPopup(popup)
+            new mapboxgl.Popup()
+                .setLngLat(e.lngLat)
+                .setHTML(popupContent)
                 .addTo(map);
+        });
 
-            markers.push(marker);
+        // Change cursor on hover
+        map.on('mouseenter', 'property-points', () => {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+
+        map.on('mouseleave', 'property-points', () => {
+            map.getCanvas().style.cursor = '';
         });
     }
 
@@ -147,48 +191,27 @@
 
     // County filter functionality
     function filterByCounty(county) {
-        markers.forEach(marker => marker.remove());
-        markers = [];
+        if (!map.getSource('properties')) return;
 
-        const filteredData = county === 'all' 
-            ? propertyData 
-            : propertyData.filter(property => 
+        let filteredData;
+        if (county === 'all') {
+            filteredData = propertyData;
+        } else {
+            filteredData = propertyData.filter(property => 
                 property.county && property.county.trim() === county
             );
+        }
 
-        filteredData.forEach(property => {
-            if (!property.longitude || !property.latitude) return;
+        // Update the source data
+        const geojsonData = convertToGeoJSON(filteredData);
+        map.getSource('properties').setData(geojsonData);
 
-            const el = document.createElement('div');
-            el.className = 'marker property-marker';
-
-            const popupContent = `
-                <div class="property-popup">
-                    <h3>${property.owner_name || 'Unknown Owner'}</h3>
-                    <div class="property-details">
-                        <p><strong>Address:</strong> ${formatAddress(property)}</p>
-                        <p><strong>County:</strong> ${property.county || 'Unknown'}</p>
-                        ${property.operator ? `<p><strong>Operator:</strong> ${property.operator}</p>` : ''}
-                        ${property.well_name ? `<p><strong>Well:</strong> ${property.well_name}</p>` : ''}
-                    </div>
-                </div>
-            `;
-
-            const popup = new mapboxgl.Popup({ offset: 25 })
-                .setHTML(popupContent);
-
-            const marker = new mapboxgl.Marker(el)
-                .setLngLat([property.longitude, property.latitude])
-                .setPopup(popup)
-                .addTo(map);
-
-            markers.push(marker);
-        });
-
-        // Fit map to show filtered markers
-        if (markers.length > 0) {
+        // Fit map to show filtered data
+        if (geojsonData.features.length > 0) {
             const bounds = new mapboxgl.LngLatBounds();
-            markers.forEach(marker => bounds.extend(marker.getLngLat()));
+            geojsonData.features.forEach(feature => {
+                bounds.extend(feature.geometry.coordinates);
+            });
             map.fitBounds(bounds, { padding: 50 });
         }
     }
