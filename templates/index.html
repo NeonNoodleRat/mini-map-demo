@@ -127,11 +127,31 @@
 
     function addDataToMap() {
         const geojsonData = convertToGeoJSON(propertyData);
-        
+
+        // Add county boundaries source
+        map.addSource('counties', {
+            'type': 'vector',
+            'url': 'mapbox://mapbox.boundaries-adm2-v3'
+        });
+
         // Add source
         map.addSource('properties', {
             'type': 'geojson',
             'data': geojsonData
+        });
+
+        // Add county boundaries layer
+        map.addLayer({
+            'id': 'county-boundaries',
+            'type': 'line',
+            'source': 'counties',
+            'source-layer': 'boundaries_admin_2',
+            'filter': ['==', 'iso_3166_1', 'US'],
+            'paint': {
+                'line-color': '#ffffff',
+                'line-width': 1,
+                'line-opacity': 0.6
+            }
         });
 
         // Add circle layer for properties
