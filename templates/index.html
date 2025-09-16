@@ -129,13 +129,15 @@
             'url': 'mapbox://mapbox.boundaries-adm2-v3'
         });
 
+        console.log('Added county boundaries source');
+
         // Add source
         map.addSource('properties', {
             'type': 'geojson',
             'data': geojsonData
         });
 
-        // Add county boundaries layer
+        // Add county boundaries layer - make it very visible for debugging
         map.addLayer({
             'id': 'county-boundaries',
             'type': 'line',
@@ -143,11 +145,25 @@
             'source-layer': 'boundaries_admin_2',
             'filter': ['==', 'iso_3166_1', 'US'],
             'paint': {
-                'line-color': '#627BC1',
-                'line-width': 1,
-                'line-opacity': 0.8
+                'line-color': '#ff0000',  // Bright red for visibility
+                'line-width': 3,          // Thicker lines
+                'line-opacity': 1         // Full opacity
             }
         });
+
+        console.log('Added county boundaries layer');
+
+        // Check if the layer was added successfully
+        setTimeout(() => {
+            const features = map.querySourceFeatures('counties', {
+                sourceLayer: 'boundaries_admin_2',
+                filter: ['==', 'iso_3166_1', 'US']
+            });
+            console.log(`Found ${features.length} county boundary features`);
+            if (features.length > 0) {
+                console.log('Sample county:', features[0].properties);
+            }
+        }, 2000);
 
         // Add circle layer for properties
         map.addLayer({
@@ -222,8 +238,10 @@
         let filteredData;
         if (county === 'all') {
             filteredData = propertyData;
+            // Show all of Texas
+            map.fitBounds([[-106.65, 25.84], [-93.51, 36.5]], { padding: 50 });
         } else {
-            filteredData = propertyData.filter(property => 
+            filteredData = propertyData.filter(property =>
                 property.county && property.county.trim() === county
             );
         }
@@ -232,13 +250,45 @@
         const geojsonData = convertToGeoJSON(filteredData);
         map.getSource('properties').setData(geojsonData);
 
-        // Fit map to show filtered data
-        if (geojsonData.features.length > 0) {
-            const bounds = new mapboxgl.LngLatBounds();
-            geojsonData.features.forEach(feature => {
-                bounds.extend(feature.geometry.coordinates);
+        // If filtering by specific county, zoom to county boundary
+        if (county !== 'all') {
+            // Query county boundary from the boundaries source
+            const countyFeatures = map.querySourceFeatures('counties', {
+                sourceLayer: 'boundaries_admin_2',
+                filter: ['all',
+                    ['==', 'iso_3166_1', 'US'],
+                    ['==', 'name', county]
+                ]
             });
-            map.fitBounds(bounds, { padding: 50 });
+
+            if (countyFeatures.length > 0) {
+                const bounds = new mapboxgl.LngLatBounds();
+                const geometry = countyFeatures[0].geometry;
+
+                // Handle different geometry types
+                if (geometry.type === 'Polygon') {
+                    geometry.coordinates[0].forEach(coord => {
+                        bounds.extend(coord);
+                    });
+                } else if (geometry.type === 'MultiPolygon') {
+                    geometry.coordinates.forEach(polygon => {
+                        polygon[0].forEach(coord => {
+                            bounds.extend(coord);
+                        });
+                    });
+                }
+
+                map.fitBounds(bounds, { padding: 50 });
+            } else {
+                // Fallback: zoom to property points if county boundary not found
+                if (geojsonData.features.length > 0) {
+                    const bounds = new mapboxgl.LngLatBounds();
+                    geojsonData.features.forEach(feature => {
+                        bounds.extend(feature.geometry.coordinates);
+                    });
+                    map.fitBounds(bounds, { padding: 50 });
+                }
+            }
         }
     }
 
