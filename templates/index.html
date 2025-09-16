@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Property Map</title>
+<title>Property Map: Texas Oil & Gas Properties</title>
 <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
  <link href="https://api.mapbox.com/mapbox-gl-js/v3.14.0/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.14.0/mapbox-gl.js"></script>
@@ -17,11 +17,8 @@
 
     <div class="places">
       <h3>View by County: </h3>
-      <ul>
-        <li><button id="all">Show All</button></li>
-        <li><button id="karnes">Karnes County</button></li>
-        <li><button id="san-augustine">San Augustine County</button></li>
-        <li><button id="borden">Borden County</button></li>
+      <ul id="county-buttons">
+        <!-- County buttons will be dynamically generated -->
       </ul>
     </div>
 
@@ -52,10 +49,54 @@
             const response = await fetch('/api/properties');
             propertyData = await response.json();
             console.log(`Loaded ${propertyData.length} properties`);
+            
+            buildCountyButtons();
             addMarkersToMap();
         } catch (error) {
             console.error('Error loading property data:', error);
         }
+    }
+
+    function buildCountyButtons() {
+        // Get unique counties from the data
+        const counties = [...new Set(propertyData
+            .filter(property => property.county && property.county.trim())
+            .map(property => property.county.trim())
+        )].sort();
+        
+        const buttonContainer = document.getElementById('county-buttons');
+        buttonContainer.innerHTML = '';
+        
+        // Add "Show All" button first
+        const allButton = document.createElement('li');
+        allButton.innerHTML = '<button id="all">Show All</button>';
+        buttonContainer.appendChild(allButton);
+        
+        // Add button for each county
+        counties.forEach(county => {
+            const li = document.createElement('li');
+            const buttonId = county.toLowerCase().replace(/\s+/g, '-');
+            li.innerHTML = `<button id="${buttonId}">${county}</button>`;
+            buttonContainer.appendChild(li);
+        });
+        
+        // Add event listeners to new buttons
+        addButtonEventListeners();
+    }
+
+    function addButtonEventListeners() {
+        const buttons = document.querySelectorAll('#county-buttons button');
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                if (button.id === 'all') {
+                    filterByCounty('all');
+                } else {
+                    // Find the county name from the button text
+                    const countyName = button.textContent;
+                    filterByCounty(countyName);
+                }
+            });
+        });
     }
 
     function addMarkersToMap() {
@@ -112,7 +153,7 @@
         const filteredData = county === 'all' 
             ? propertyData 
             : propertyData.filter(property => 
-                property.county && property.county.toLowerCase().includes(county.toLowerCase())
+                property.county && property.county.trim() === county
             );
 
         filteredData.forEach(property => {
@@ -150,21 +191,6 @@
             markers.forEach(marker => bounds.extend(marker.getLngLat()));
             map.fitBounds(bounds, { padding: 50 });
         }
-    }
-
-    // Button event listeners
-    const buttons = document.getElementsByTagName('button');
-    
-    for (const button of buttons) {
-        button.addEventListener('click', (e) => {
-            const countryMap = {
-                'all': 'all',
-                'karnes': 'karnes',
-                'san-augustine': 'san augustine',
-                'borden': 'borden'
-            };
-            filterByCounty(countryMap[button.id]);
-        });
     }
 
     // Load data when page loads
