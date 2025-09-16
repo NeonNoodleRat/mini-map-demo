@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Your First Map: BUILD with Mapbox 2025</title>
+<title>Property Map</title>
 <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
  <link href="https://api.mapbox.com/mapbox-gl-js/v3.14.0/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.14.0/mapbox-gl.js"></script>
@@ -16,45 +16,25 @@
     <div id="map"></div>
 
     <div class="places">
-      <h3>Fly to: </h3>
+      <h3>View by County: </h3>
       <ul>
-        <li><button id="chicago">Chicago</button></li>
-        <li><button id="cleveland">Cleveland</button></li>
-        <li><button id="burlington">Burlington</button></li>
+        <li><button id="all">Show All</button></li>
+        <li><button id="karnes">Karnes County</button></li>
+        <li><button id="san-augustine">San Augustine County</button></li>
+        <li><button id="borden">Borden County</button></li>
       </ul>
     </div>
 
 <script>
-    const MAPBOX_ACCESS_TOKEN = "{{ mapbox_access_token }}";
+    const ACCESS_TOKEN = "{{ access_token }}";
     
-    mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
+    mapboxgl.accessToken = ACCESS_TOKEN;
 
-    const placesToFly = {
-      chicago: {
-        center: [-87.64733914720601, 41.885044123330346],
-        zoom: 16.3,
-        bearing:38.36,
-        pitch: 65.79
-      },
-      cleveland: {
-        center: [-81.57391400282499, 41.572300879522516],
-        zoom: 16.4, 
-        bearing: 0, 
-        pitch: 52.5
-
-      },
-      burlington: {
-        center: [-73.21866556424258, 44.47414554129139],
-        zoom: 16,
-        bearing: 39.12,
-        pitch: 60.2
-      }
-    }
-
+    // Center the map on Texas
     const map = new mapboxgl.Map( {
         container: 'map',
-        center: [-73.21418, 44.47753],
-        zoom: 11,
+        center: [-99.9018, 31.9686], // Center of Texas
+        zoom: 6,
         config: {
             basemap: {
                 lightPreset: "night",
@@ -63,390 +43,139 @@
         },
     })
 
-    const restos = {
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -87.647756,
-          41.884704
-        ]
-      },
-      "properties": {
-        "name": "AU CHEVAL",
-        "menu": "Fried Bologna Sandwich, Double Cheeseburger",
-        "address": "800 W Randolph St, Chicago, IL 60607, United States",
-        "link": "https://www.auchevaldiner.com/chicago/home"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-        -81.572132,
-        41.570963
-        ]
-      },
-      "properties": {
-        "name": "DOINKS BURGER JOINT",
-        "menu": "OG Burger & MacSalad, The Bonn Mi, Sweet Heat",
-        "address": "15519 Waterloo Rd, Cleveland, OH 44110, United States",
-        "link": "https://share.google/3aq4RMTIlCcKYincP"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -73.218625,
-          44.479
-        ]
-      },
-      "properties": {
-        "name": "BLEU NORTHEAST KITCHEN",
-        "menu": "Venison Burger and Lamb Burger",
-        "address": "25 Cherry St, Burlington, Vermont 05401, United States",
-        "link": "https://burgerweek.sevendaysvt.com/burger-special/bleu-northeast-kitchen/"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -73.21964565,
-          44.47698347
-        ]
-      },
-      "properties": {
-        "name": "THE SKINNY PANCAKE — BURLINGTON",
-        "menu": "Cowpoke Burger and SP Smash Burger",
-        "address": "60 Lake St, Burlington, Vermont 05401, United States",
-        "link": "https://burgerweek.sevendaysvt.com/burger-special/the-skinny-pancake-burlington/"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -73.17892184,
-          44.46948108
-        ]
-      },
-      "properties": {
-        "name": "UPPER DECK PUB",
-        "menu": "Jammer Burger",
-        "address": "1076 Williston Rd. South Burlington, VT 05403",
-        "link": "https://burgerweek.sevendaysvt.com/burger-special/upper-deck-pub/"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -73.186333,
-          44.490654
-        ]
-      },
-      "properties": {
-        "name": "OUR HOUSE BISTRO",
-        "menu": "Brisket Gouda Smash Burger and Cheddar Bacon Apple Turkey Burger",
-        "address": "36 Main St #1, Winooski, Vermont 05404",
-        "link": "https://burgerweek.sevendaysvt.com/burger-special/our-house-bistro/"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -73.214153,
-          44.477131
-        ]
-      },
-      "properties": {
-        "name": "VERMONT PUB & BREWERY",
-        "menu": "Mediterranean Burger",
-        "address": "144 College St, Burlington, Vermont 05401",
-        "link": "https://burgerweek.sevendaysvt.com/burger-special/vermont-pub-brewery/"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -73.221187,
-          44.456113
-        ]
-      },
-      "properties": {
-        "name": "SWITCHBACK BEER GARDEN & TAP HOUSE",
-        "menu": "Root Down Under Burger and Switchback Smash Burger",
-        "address": "160 Flynn Ave. Burlington, VT 05401",
-        "link": "https://burgerweek.sevendaysvt.com/burger-special/switchback-beer-garden-tap-house/"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -73.213934,
-          44.476545
-        ]
-      },
-      "properties": {
-        "name": "AMERICAN FLATBREAD BURLINGTON",
-        "menu": "\"Royale With Cheese\" Flatbread",
-        "address": "115 St Paul St, Burlington, Vermont 05401",
-        "link": "https://burgerweek.sevendaysvt.com/burger-special/american-flatbread-burlington/"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -73.212767,
-          44.477232
-        ]
-      },
-      "properties": {
-        "name": "LEUNIG’S BISTRO & CAFÉ",
-        "menu": "French Onion and “Beef Wellington” Inspired",
-        "address": "115 Church St. Burlington, VT 05401",
-        "link": "https://burgerweek.sevendaysvt.com/burger-special/leunigs-bistro-cafe/"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -73.212808,
-          44.477494
-        ]
-      },
-      "properties": {
-        "name": "CHURCH STREET TAVERN",
-        "menu": "Pizza Burger and Nacho Burger",
-        "address": "103 Church Street, Burlington, Vermont 05401",
-        "link": "https://burgerweek.sevendaysvt.com/burger-special/church-street-tavern/"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -73.157028,
-          44.463983
-        ]
-      },
-      "properties": {
-        "name": "PARKWAY DINER",
-        "menu": "50/50 Burger",
-        "address": "1696 Williston Road, South Burlington, Vermont 05403",
-        "link": "https://burgerweek.sevendaysvt.com/burger-special/parkway-diner/"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -73.220677,
-          44.457002
-        ]
-      },
-      "properties": {
-        "name": "BURLINGTON BEER COMPANY",
-        "menu": "BBCO Smash Burger",
-        "address": "180 Flynn Avenue, Burlington, Vermont 05401",
-        "link": "https://burgerweek.sevendaysvt.com/burger-special/burlington-beer-company/"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -73.245698,
-          44.505359
-        ]
-      },
-      "properties": {
-        "name": "BUTTER BAR & KITCHEN",
-        "menu": "Mansfield Burger and House Veggie Burger",
-        "address": "1127 North Avenue, Burlington, Vermont 05408",
-        "link": "https://burgerweek.sevendaysvt.com/burger-special/butter-bar-kitchen/"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -73.18678301,
-          44.49188159
-        ]
-      },
-      "properties": {
-        "name": "FOUR QUARTERS BREWING",
-        "menu": "Spicy Burger and Vermont Onion Burger",
-        "address": "70 Main St, Winooski, Vermont 05404",
-        "link": "https://burgerweek.sevendaysvt.com/burger-special/four-quarters-brewing/"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -73.11003,
-          44.44582
-        ]
-      },
-      "properties": {
-        "name": "GRAZERS WILLISTON",
-        "menu": "Crispy Potato Burger",
-        "address": "192 Boxwood St, Williston, Vermont 05495",
-        "link": "https://burgerweek.sevendaysvt.com/burger-special/grazers-williston/"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -73.211589,
-          44.477714
-        ]
-      },
-      "properties": {
-        "name": "THE DAILY PLANET",
-        "menu": "Vermont Bean Crafter's Falafel Burger and LedgEnd Farm Venison Burger",
-        "address": "15 Center St, Burlington, Vermont 05401",
-        "link": "https://burgerweek.sevendaysvt.com/burger-special/the-daily-planet/"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -73.18048569,
-          44.46736786
-        ]
-      },
-      "properties": {
-        "name": "COPPER AT DORSET",
-        "menu": "Reuben Burger",
-        "address": "100 Dorset St Suite 2, South Burlington, Vermont 05403",
-        "link": "https://burgerweek.sevendaysvt.com/burger-special/copper-at-dorset/"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -73.217705,
-          44.478966
-        ]
-      },
-      "properties": {
-        "name": "JUNIPER BAR & RESTAURANT",
-        "menu": "Real Vermonty and Spicy Flatlander41 Cherry St",
-        "address": "Burlington, Vermont 05401",
-        "link": "https://burgerweek.sevendaysvt.com/burger-special/juniper-bar-restaurant/"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -73.18661023,
-          44.49035955
-        ]
-      },
-      "properties": {
-        "name": "GRAZERS WINOOSKI",
-        "menu": "Black & Blue Burger",
-        "address": "24 Main St, Winooski, Vermont 05404",
-        "link": "https://burgerweek.sevendaysvt.com/burger-special/grazers-winooski/"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -73.21172,
-          44.47616
-        ]
-      },
-      "properties": {
-        "name": "NECTAR’S",
-        "menu": "Bacon Ranch Burger and Black Bean Burger",
-        "address": "188 Main St, Burlington, Vermont 05401",
-        "link": "https://burgerweek.sevendaysvt.com/burger-special/nectars/"
-      }
-    }
- 
-  ]
-}
+    let propertyData = [];
+    let markers = [];
 
+    // Fetch property data from API
+    async function loadPropertyData() {
+        try {
+            const response = await fetch('/api/properties');
+            propertyData = await response.json();
+            console.log(`Loaded ${propertyData.length} properties`);
+            addMarkersToMap();
+        } catch (error) {
+            console.error('Error loading property data:', error);
+        }
+    }
+
+    function addMarkersToMap() {
+        // Clear existing markers
+        markers.forEach(marker => marker.remove());
+        markers = [];
+
+        propertyData.forEach(property => {
+            if (!property.longitude || !property.latitude) return;
+
+            const el = document.createElement('div');
+            el.className = 'marker property-marker';
+
+            // Create popup content
+            const popupContent = `
+                <div class="property-popup">
+                    <h3>${property.owner_name || 'Unknown Owner'}</h3>
+                    <div class="property-details">
+                        <p><strong>Address:</strong> ${formatAddress(property)}</p>
+                        <p><strong>County:</strong> ${property.county || 'Unknown'}</p>
+                        ${property.operator ? `<p><strong>Operator:</strong> ${property.operator}</p>` : ''}
+                        ${property.well_name ? `<p><strong>Well:</strong> ${property.well_name}</p>` : ''}
+                        ${property.property_description ? `<p class="property-desc"><strong>Description:</strong> ${property.property_description.substring(0, 100)}${property.property_description.length > 100 ? '...' : ''}</p>` : ''}
+                    </div>
+                </div>
+            `;
+
+            const popup = new mapboxgl.Popup({ offset: 25 })
+                .setHTML(popupContent);
+
+            const marker = new mapboxgl.Marker(el)
+                .setLngLat([property.longitude, property.latitude])
+                .setPopup(popup)
+                .addTo(map);
+
+            markers.push(marker);
+        });
+    }
+
+    function formatAddress(property) {
+        const parts = [];
+        if (property.owner_address) parts.push(property.owner_address);
+        if (property.city) parts.push(property.city);
+        if (property.state) parts.push(property.state);
+        if (property.zip) parts.push(property.zip);
+        return parts.join(', ') || 'Address not available';
+    }
+
+    // County filter functionality
+    function filterByCounty(county) {
+        markers.forEach(marker => marker.remove());
+        markers = [];
+
+        const filteredData = county === 'all' 
+            ? propertyData 
+            : propertyData.filter(property => 
+                property.county && property.county.toLowerCase().includes(county.toLowerCase())
+            );
+
+        filteredData.forEach(property => {
+            if (!property.longitude || !property.latitude) return;
+
+            const el = document.createElement('div');
+            el.className = 'marker property-marker';
+
+            const popupContent = `
+                <div class="property-popup">
+                    <h3>${property.owner_name || 'Unknown Owner'}</h3>
+                    <div class="property-details">
+                        <p><strong>Address:</strong> ${formatAddress(property)}</p>
+                        <p><strong>County:</strong> ${property.county || 'Unknown'}</p>
+                        ${property.operator ? `<p><strong>Operator:</strong> ${property.operator}</p>` : ''}
+                        ${property.well_name ? `<p><strong>Well:</strong> ${property.well_name}</p>` : ''}
+                    </div>
+                </div>
+            `;
+
+            const popup = new mapboxgl.Popup({ offset: 25 })
+                .setHTML(popupContent);
+
+            const marker = new mapboxgl.Marker(el)
+                .setLngLat([property.longitude, property.latitude])
+                .setPopup(popup)
+                .addTo(map);
+
+            markers.push(marker);
+        });
+
+        // Fit map to show filtered markers
+        if (markers.length > 0) {
+            const bounds = new mapboxgl.LngLatBounds();
+            markers.forEach(marker => bounds.extend(marker.getLngLat()));
+            map.fitBounds(bounds, { padding: 50 });
+        }
+    }
+
+    // Button event listeners
     const buttons = document.getElementsByTagName('button');
     
     for (const button of buttons) {
-      button.addEventListener('click', (e) => {
-        map.flyTo(placesToFly[button.id]);
-      })
-    }
-    
-
-
-    map.on('load', () => {
-        map.addSource('restaurants', {
-            type: 'geojson',
-            data: restos
+        button.addEventListener('click', (e) => {
+            const countryMap = {
+                'all': 'all',
+                'karnes': 'karnes',
+                'san-augustine': 'san augustine',
+                'borden': 'borden'
+            };
+            filterByCounty(countryMap[button.id]);
         });
+    }
 
-        for ( const feature of restos.features) {
-
-            const el = document.createElement('div');
-            el.className = 'marker';
-
-            const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
-                `<div class="flex"><img src="{{ url_for('static', filename='burger.png') }}" alt="burger" /><h3>${feature.properties.name}</h3></div>
-                <p><span class="bold">Burgers: </span>${feature.properties.menu}</p>
-                <p class="address">${feature.properties.address}</p>
-                <p><a href="${feature.properties.link}" target="_blank">More Info</a></p>`
-                );
-
-            new mapboxgl.Marker(el)
-                .setLngLat(feature.geometry.coordinates)
-                .setPopup(popup)
-                .addTo(map)
-
-        }
+    // Load data when page loads
+    map.on('load', () => {
+        loadPropertyData();
     });
-
-
   
+    // Add search functionality
     window.addEventListener('load', () => {
         const searchBox = new MapboxSearchBox();
-        searchBox.accessToken = MAPBOX_ACCESS_TOKEN;
+        searchBox.accessToken = ACCESS_TOKEN;
         searchBox.marker = true;
         searchBox.mapboxgl = mapboxgl;
         searchBox.componentOptions = { allowReverse: true, flipCoordinates: true };
